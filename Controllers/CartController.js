@@ -3,8 +3,9 @@ const CartRouter = express.Router();
 const mongoose = require("mongoose");
 const Cart = require("../Models/CartModel");
 const { isAuth } = require("../Middlewares/AuthMiddleware");
+const { rateLimiting } = require("../Middlewares/RateLimiting");
 
-CartRouter.post("/create_cart", isAuth, async (req, res) => {
+CartRouter.post("/create_cart", isAuth, rateLimiting, async (req, res) => {
     const { productId, productQuantity, productPrice, cartTotal, sessionId, userId } = req.body;
   
     try {

@@ -4,6 +4,7 @@ const Order = require("../Models/OrderModel");
 const Cart = require("../Models/CartModel");
 const { isAuth } = require("../Middlewares/AuthMiddleware");
 const mongoose = require('mongoose');
+const { rateLimiting } = require("../Middlewares/RateLimiting");
 const { ObjectId } = mongoose.Types;
 
 
@@ -59,7 +60,7 @@ OrderRouter.get("/getorderbyid/:id", async (req, res) => {
 
 
 // Place an order with products from the user's cart
-OrderRouter.post("/place_order_from_cart", isAuth, async (req, res) => {
+OrderRouter.post("/place_order_from_cart", isAuth, rateLimiting, async (req, res) => {
   console.log("REQUEST USER", req.user);
 
   const userId = req.user.userId; // Assuming you have the user ID from the authenticated user

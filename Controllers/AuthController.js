@@ -1,8 +1,9 @@
 const express = require("express");
 const AuthRouter = express.Router();
-const { cleanUpAndValidate } = require("../utils/AuthUtils");
+const { cleanUpAndValidate, sendVerificationToken, generateJWTToken } = require("../utils/AuthUtils");
 const User = require("../Models/UserModel");
 const { isAuth } = require("../Middlewares/AuthMiddleware");
+// const { rateLimiting } = require("./middlewares/rateLimiting");
 
 
 //  /auth/register
@@ -33,12 +34,20 @@ AuthRouter.post("/register", async (req, res) => {
       try {
         const userDb = await userObj.registerUser();
         console.log(userDb);
+        const verificationToken = generateJWTToken(email);
+        console.log(verificationToken);
+        // send mai function
+        sendVerificationToken({ email, verificationToken });
         return res.send({
           status: 200,
-          message: "User Created Successfully",
-          data: userDb,
+          message: "Registration successfull, Link has been sent to your mail id. Please verify before login.",
+          data: {
+            user: userDb,
+            token: verificationToken
+          }
         });
       } catch (error) {
+        console.error("Registration Error:", error); // Add this line to log the error
         return res.send({
           status: 500,
           message: "Database error",
@@ -68,6 +77,7 @@ AuthRouter.post("/login", async (req, res) => {
 
   try {
     const userDb = await User.loginUser({ email, password });
+    const authToken = generateJWTToken(email);
 
     //session bases authentication
     req.session.isAuth = true;
@@ -80,7 +90,10 @@ AuthRouter.post("/login", async (req, res) => {
     return res.send({
       status: 200,
       message: "Login Successfully",
-      data: userDb,
+      data:{
+        user: userDb,
+        token: authToken,
+      } 
     });
   } catch (error) {
     return res.send({
